@@ -1,6 +1,6 @@
 
 
-```markdown
+
 # 🚀 ComfyUI Anima LLM Prompt Rewriter
 
 **Anima LLM Prompt Rewriter**는 단보루(Danbooru) 스타일의 나열식 캐릭터/배경 태그를 로컬 LLM을 사용하여 자연스러운 영문 소설 형태의 프롬프트로 자동 변환해 주는 **ComfyUI 전용 커스텀 노드**입니다. 
