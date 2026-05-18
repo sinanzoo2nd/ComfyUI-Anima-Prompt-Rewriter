@@ -1,3 +1,6 @@
+
+
+```markdown
 # 🚀 ComfyUI Anima LLM Prompt Rewriter
 
 **Anima LLM Prompt Rewriter**는 단보루(Danbooru) 스타일의 나열식 캐릭터/배경 태그를 로컬 LLM을 사용하여 자연스러운 영문 소설 형태의 프롬프트로 자동 변환해 주는 **ComfyUI 전용 커스텀 노드**입니다. 
@@ -57,28 +60,95 @@
 
 ### [A] 간편 설치 모드 (Standalone - 일반 유저용)
 외부 서버 프로그램 없이 ComfyUI 노드 내에서 직접 모델을 구동하는 방식입니다.
-* **선행 조건:** `llama-cpp-python` 패키지 설치 필요.
-* **설치 방법 (ComfyUI Portable 기준):**
-  1. ComfyUI 최상위 폴더(`run_nvidia_gpu.bat`이 있는 곳)에서 주소창에 `cmd`를 입력하여 터미널을 엽니다.
-  2. 다음 명령어를 입력하여 CUDA 가속 버전 패키지를 설치합니다.
-     ```cmd
-     set CMAKE_ARGS=-DGGML_CUDA=on
-     .\python_embeded\python.exe -m pip install llama-cpp-python
-     ```
-	 
+
+#### 🛠️ 1단계: ComfyUI 환경에 llama-cpp-python 설치 (GPU 가속)
+다른 분들에게 배포하실 때에도 안내해야 하는 가장 중요한 과정입니다. ComfyUI 포터블 버전 기준으로, 파이썬 내장 환경에 GPU 가속이 활성화된 모듈을 설치해야 합니다.
+
+1. ComfyUI가 설치된 메인 폴더( `python_embeded` 폴더가 보이는 곳)에서 터미널(CMD)을 엽니다.
+2. 아래 명령어를 입력하여 CUDA 가속이 포함된 버전을 설치합니다. (NVIDIA CUDA Toolkit, [CMake](https://cmake.org/download/)가 설치되어 있어야 합니다.)
+```cmd
+set CMAKE_ARGS=-DGGML_CUDA=on
+.\python_embeded\python.exe -m pip install llama-cpp-python
+
+```
+
 * **사용법:** 노드 설정의 `model_choice`에서 `LLM/모델이름.gguf`를 선택합니다.
 
 ### [B] 고성능 하이엔드 모드 (llama-server API - 고급 유저용)
+
 LLM을 독립된 서버 프로세스로 띄워, ComfyUI와의 VRAM 충돌을 완벽히 방지하고 극한의 추론 속도를 내는 방식입니다. (RTX 3090/4090/5090 등 하이엔드 유저 권장)
-* **선행 조건:** 공식 [llama.cpp](https://github.com/ggerganov/llama.cpp) 빌드 파일(`llama-server.exe`) 필요.
-* **실행 방법:** ComfyUI를 켜기 **전**, 터미널을 열고 서버를 8080 포트로 엽니다. (GPU 레이어 오프로드 `-ngl 99` 권장)
-  ```cmd
-  llama-server.exe -m "C:\ComfyUI\models\LLM\모델명.gguf" -c 2048 -ngl 99 --port 8080
-  
 
-* **사용법:** 노드 설정에서 모델을 `[API] LLAMA-SERVER (127.0.0.1:8080)`으로 선택합니다. (노드가 켜져 있는 서버를 자동 감지하여 API 통신을 수행합니다.)
+Windows 환경에서 GPU 가속이 활성화된 `llama-server`를 구축하는 과정을 단계별로 명확하게 안내해 드리겠습니다.
 
-> 💡 **Tip:** [A] 간편 설치 모드 진행 중 C++ 빌드 툴(Visual Studio) 부재로 에러가 발생한다면, **[B] 고성능 하이엔드 모드(`llama-server` 다운로드 후 실행)**를 사용하는 것이 설치 에러를 피하는 가장 빠르고 확실한 방법입니다.
+#### 🛠️ 1단계: 필수 빌드 도구 설치 (Prerequisites)
+
+GPU(CUDA) 버전을 빌드하려면 C++ 컴파일러와 NVIDIA의 개발자 도구가 필요합니다. 이미 설치되어 있다면 건너뛰셔도 좋습니다.
+
+1. **Visual Studio Build Tools (C++):**
+* Microsoft 공식 홈페이지에서 Visual Studio Build Tools를 다운로드합니다.
+* 설치 시 **"C++를 사용한 데스크톱 개발"** 워크로드를 반드시 체크하고 설치합니다.
+
+
+2. **NVIDIA CUDA Toolkit:**
+* NVIDIA 공식 홈페이지에서 **CUDA Toolkit** 최신 버전(12.x 이상 권장)을 다운로드하여 설치합니다. (최신 Blackwell 아키텍처를 온전히 지원하기 위해 최신 버전이 좋습니다.)
+
+
+3. **CMake 및 Git:**
+* 코드 빌드를 위한 [CMake](https://cmake.org/download/)와 저장소 복제를 위한 [Git](https://git-scm.com/downloads)을 설치합니다. (설치 시 "Add to system PATH" 옵션을 꼭 체크해 주세요.)
+
+
+
+#### 🚀 2단계: 저장소 복제 및 소스 코드 다운로드
+
+터미널(명령 프롬프트 또는 PowerShell)을 열고, `llama.cpp`를 설치할 폴더(예: `B:\AI\`)로 이동한 뒤 아래 명령어를 차례대로 입력합니다.
+
+```cmd
+git clone [https://github.com/ggerganov/llama.cpp.git](https://github.com/ggerganov/llama.cpp.git)
+cd llama.cpp
+
+```
+
+#### ⚙️ 3단계: CUDA(GPU) 모드로 컴파일 (Build)
+
+이제 소스 코드를 내 그래픽카드에 맞게 GPU 가속 버전으로 조립할 차례입니다. `llama.cpp` 폴더 안에서 다음 명령어들을 한 줄씩 실행합니다.
+
+```cmd
+:: 1. 빌드용 임시 폴더 생성 및 이동
+mkdir build
+cd build
+
+:: 2. CMake를 이용해 CUDA 환경 설정 (GGML_CUDA=ON이 핵심입니다)
+cmake .. -DGGML_CUDA=ON
+
+:: 3. 릴리즈 버전으로 최종 빌드 (PC 사양에 따라 1~3분 정도 소요됩니다)
+cmake --build . --config Release
+
+```
+
+빌드가 성공적으로 끝나면, `llama.cpp\build\bin\Release\` 폴더 안에 우리가 그토록 원하던 **`llama-server.exe`** 파일이 생성됩니다.
+
+#### ✅ 4단계: GPU 구동 테스트 및 사용법
+
+제대로 VRAM을 사용하며 켜지는지 확인해 볼 차례입니다. 터미널에서 방금 생성된 폴더로 이동하여, 기존에 사용하시던 `.gguf` 모델을 구동해 봅니다.
+
+```cmd
+cd bin\Release
+
+:: 모델 경로를 실제 저장된 위치로 수정해서 실행해 주세요.
+llama-server.exe -m "B:\AI\models\LLM\gemma-4-E4B-UUH-Q8.gguf" -c 2048 -ngl 99 --port 8080
+
+```
+
+**💡 중요 실행 옵션 설명:**
+
+* `-m`: GGUF 모델 파일의 절대 경로를 지정합니다.
+* `-c 2048`: 컨텍스트 길이(Context Window)를 제한하여 VRAM 소모를 최적화합니다. 프롬프트 전처리용으로는 2048이면 아주 충분합니다.
+* **`-ngl 99` (가장 중요):** Number of GPU Layers의 약자로, 모델의 연산 레이어를 몇 개나 GPU(VRAM)로 넘길 것인지 정합니다. 99처럼 큰 숫자를 넣으면 가능한 모든 연산을 VRAM으로 100% 강제 할당(Offload)하여 극한의 속도를 냅니다.
+* `--port 8080`: 서버가 사용할 포트 번호입니다.
+
+실행 후 터미널 로그에 `llama_kv_cache_init: VRAM` 할당 내역이 보이고, 마지막에 `HTTP server listening` 메시지가 뜬다면 완벽하게 성공한 것입니다!
+
+* **노드 사용법:** ComfyUI 노드 설정에서 모델을 `[API] LLAMA-SERVER (127.0.0.1:8080)`으로 선택합니다. (노드가 켜져 있는 서버를 자동 감지하여 API 통신을 수행합니다.)
 
 ---
 
@@ -132,3 +202,7 @@ LLM을 독립된 서버 프로세스로 띄워, ComfyUI와의 VRAM 충돌을 완
 **Q. API 서버를 선택했는데 "API 서버가 꺼져 있습니다"라며 우회(Fallback)됩니다.**
 
 * **A.** `llama-server.exe`가 실행된 터미널이 켜져 있는지 확인하세요. 포트 번호가 `8080`인지, 방화벽에서 로컬 루프백(`127.0.0.1`) 접속을 차단하고 있지 않은지 확인해야 합니다.
+
+```
+
+```
