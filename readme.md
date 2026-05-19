@@ -64,11 +64,20 @@
 #### 🛠️ 1단계: ComfyUI 환경에 llama-cpp-python 설치 (GPU 가속)
 다른 분들에게 배포하실 때에도 안내해야 하는 가장 중요한 과정입니다. ComfyUI 포터블 버전 기준으로, 파이썬 내장 환경에 GPU 가속이 활성화된 모듈을 설치해야 합니다.
 
-1. ComfyUI가 설치된 메인 폴더( `python_embeded` 폴더가 보이는 곳)에서 터미널(CMD)을 엽니다.
+윈도우 시작 메뉴를 열고 검색창에 아래 이름을 검색하여 실행합니다.
+
+🔍 검색어: x64 Native Tools Command Prompt for VS (또는 2022 또는 2019)
+
+(아이콘이 검은색 터미널 창 모양입니다. 이 터미널은 켜질 때 자동으로 C++ 컴파일러 경로를 시스템에 물고 들어갑니다.)
+
+새로 열린 개발자 터미널에서, 다시 ComfyUI 폴더로 이동합니다.
 2. 아래 명령어를 입력하여 CUDA 가속이 포함된 버전을 설치합니다. (NVIDIA CUDA Toolkit, [CMake](https://cmake.org/download/)가 설치되어 있어야 합니다.)
 ```cmd
+:: 1. 빌드 환경 설정
 set CMAKE_ARGS=-DGGML_CUDA=on
-.\python_embeded\python.exe -m pip install llama-cpp-python
+
+:: 2. 캐시를 완전히 무시하고 최신 0.3.23(혹은 최신) 버전으로 강제 설치
+.\python_embeded\python.exe -m pip install --no-cache-dir --force-reinstall "llama-cpp-python>=0.3.23"
 
 ```
 
